@@ -1,0 +1,143 @@
+﻿.login-page {
+    display: flex;
+    min-height: 100vh;
+    font-family: Sora, Arial, sans-serif;
+    color: #0F3D2E;
+    background: #F4F6F1;
+    flex-wrap: wrap;
+}
+
+.hero {
+    flex: 1 1 420px;
+    background: #0F3D2E;
+    color: #fff;
+    padding: 56px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 32px;
+}
+
+.brand {
+    font-weight: 700;
+    font-size: 24px;
+}
+
+    .brand span {
+        color: #C8F169;
+    }
+
+.hero svg {
+    width: 100%;
+    max-width: 460px;
+    align-self: center;
+}
+
+.hero h1 {
+    margin: 0 0 12px;
+    font-size: 40px;
+    line-height: 1.15;
+}
+
+.hero p {
+    margin: 0;
+    color: #D6E4DA;
+}
+
+.form-wrap {
+    flex: 1 1 420px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 48px;
+}
+
+.form {
+    width: 100%;
+    max-width: 380px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+    .form h2 {
+        margin: 0 0 6px;
+        font-size: 28px;
+    }
+
+.sub {
+    margin: 0;
+    color: #4B5A52;
+    font-size: 15px;
+}
+
+.group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+    .group label {
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+.field {
+    height: 48px;
+    box-sizing: border-box;
+    padding: 0 14px;
+    border: 1.5px solid #8A9D91;
+    border-radius: 10px;
+    font: inherit;
+    background: #fff;
+}
+
+.row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+}
+
+.check {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.btn {
+    height: 50px;
+    border: 0;
+    border-radius: 10px;
+    background: #C8F169;
+    color: #0F3D2E;
+    font: 700 16px Sora, Arial, sans-serif;
+    cursor: pointer;
+}
+
+    .btn:disabled {
+        opacity: .6;
+        cursor: default;
+    }
+
+.alert {
+    background: #fff;
+    border: 2px solid #0F3D2E;
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 14px;
+}
+
+.err {
+    color: #7A1F1F;
+    font-size: 13px;
+}
+
+.foot {
+    text-align: center;
+    font-size: 14px;
+    color: #4B5A52;
+}
+
+a {
+    color: #0F3D2E;
+}

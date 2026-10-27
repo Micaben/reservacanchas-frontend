@@ -1,0 +1,67 @@
+/* CSS for PanelLayout component */
+.panel {
+    display: flex;
+    min-height: 100vh;
+    flex-wrap: wrap;
+    font-family: Sora, Arial, sans-serif;
+    color: #0F3D2E;
+    background: #F4F6F1;
+}
+
+.side {
+    flex: 0 0 230px;
+    background: #0F3D2E;
+    color: #fff;
+    padding: 28px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.brand {
+    font-weight: 700;
+    font-size: 22px;
+    margin-bottom: 20px;
+}
+
+    .brand span {
+        color: #C8F169;
+    }
+
+.menu {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+}
+
+    .menu a, .logout {
+        padding: 12px 14px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 15px;
+        font-weight: 600;
+        color: #fff;
+    }
+
+        .menu a:hover, .logout:hover {
+            background: rgba(255, 255, 255, .12);
+        }
+
+        .menu a.active {
+            background: #C8F169;
+            color: #0F3D2E;
+        }
+
+.content {
+    flex: 1 1 640px;
+    padding: 32px;
+    min-width: 0;
+}
+.logout {
+    background: transparent;
+    border: 0;
+    text-align: left;
+    cursor: pointer;
+    font: 600 15px Sora, Arial, sans-serif;
+}

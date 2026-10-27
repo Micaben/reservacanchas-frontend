@@ -1,0 +1,10 @@
+﻿@inject NavigationManager Nav
+
+@code {
+    protected override void OnInitialized()
+    {
+        var path = Nav.ToBaseRelativePath(Nav.Uri);
+        if (!path.StartsWith("login", StringComparison.OrdinalIgnoreCase))
+            Nav.NavigateTo("/login", replace: true);
+    }
+}

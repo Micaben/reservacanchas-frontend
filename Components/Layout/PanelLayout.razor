@@ -1,0 +1,33 @@
+﻿@inherits LayoutComponentBase
+@inject AuthService Auth
+@inject NavigationManager Nav
+
+<AuthorizeView>
+    <Authorized>
+        <div class="panel">
+            <aside class="side">
+                <div class="brand">Canchas<span>Ya</span></div>
+                <nav class="menu">
+                    <NavLink href="dashboard">Inicio</NavLink>
+                    <a href="#">Reservar cancha</a>
+                    <a href="#">Mis reservas</a>
+                    <a href="#">Canchas</a>
+                    <a href="#">Pagos</a>
+                    <a href="#">Perfil</a>
+                </nav>
+                <button class="logout" @onclick="LogoutAsync">Cerrar sesión</button>
+            </aside>
+            <main class="content">@Body</main>
+        </div>
+    </Authorized>
+    <NotAuthorized><RedirectToLogin /></NotAuthorized>
+    <Authorizing><p style="padding:2rem">Cargando…</p></Authorizing>
+</AuthorizeView>
+
+@code {
+    private async Task LogoutAsync()
+    {
+        await Auth.LogoutAsync();
+        Nav.NavigateTo("/login");
+    }
+}

@@ -1,0 +1,11 @@
+﻿@inherits LayoutComponentBase
+
+<AuthorizeView>
+    <Authorized>
+        <div class="page">
+            ...aquí va todo lo que ya tenías dentro del div "page"...
+        </div>
+    </Authorized>
+    <NotAuthorized><RedirectToLogin /></NotAuthorized>
+    <Authorizing><p style="padding:2rem">Cargando…</p></Authorizing>
+</AuthorizeView>

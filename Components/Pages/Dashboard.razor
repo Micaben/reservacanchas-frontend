@@ -1,0 +1,63 @@
+﻿@page "/dashboard"
+@layout BlazorApp1.Components.Layout.PanelLayout
+
+<PageTitle>Dashboard</PageTitle>
+
+<div class="top">
+    <div>
+        <AuthorizeView>
+    <h1>Hola, @context.User.Identity?.Name</h1>
+</AuthorizeView>
+        <p class="sub">Disponibilidad de hoy</p>
+    </div>
+    <button class="btn">Nueva reserva</button>
+</div>
+
+<div class="kpis">
+    <div class="kpi"><span>Reservas de hoy</span><strong>—</strong></div>
+    <div class="kpi"><span>Próxima reserva</span><strong>—</strong></div>
+    <div class="kpi"><span>Canchas libres ahora</span><strong>—</strong></div>
+    <div class="kpi"><span>Saldo pendiente</span><strong>—</strong></div>
+</div>
+
+<section class="card">
+    <h2>Horarios por cancha</h2>
+    <div class="scroll">
+        <div class="fila head">
+            <div>Cancha</div>
+            @foreach (var h in horas) { <div>@h</div> }
+        </div>
+        @foreach (var c in canchas)
+        {
+            <div class="fila">
+                <div class="nombre">@c.Cancha</div>
+                @foreach (var e in c.Estados)
+                {
+                    <div class="celda @Clase(e)">@Texto(e)</div>
+                }
+            </div>
+        }
+    </div>
+</section>
+
+<section class="card">
+    <h2>Mis próximas reservas</h2>
+    <p class="sub">Aún no hay reservas. Se mostrarán aquí cuando conectemos la base de datos.</p>
+</section>
+
+@code {
+    private readonly string[] horas = { "16:00", "17:00", "18:00", "19:00", "20:00", "21:00" };
+
+    // L = libre, R = reservada, P = pendiente (datos de ejemplo)
+    private readonly (string Cancha, string[] Estados)[] canchas =
+    {
+        ("Fútbol 5 · Cancha 1", new[] { "L", "R", "R", "P", "L", "L" }),
+        ("Fútbol 7 · Cancha 2", new[] { "R", "R", "L", "L", "P", "R" }),
+        ("Básquet · Cancha 3",  new[] { "L", "L", "R", "R", "L", "L" }),
+        ("Vóley · Cancha 4",    new[] { "L", "P", "L", "R", "R", "L" }),
+        ("Tenis · Cancha 5",    new[] { "R", "L", "L", "L", "R", "P" }),
+    };
+
+    private static string Texto(string e) => e switch { "R" => "Reservada", "P" => "Pendiente", _ => "Libre" };
+    private static string Clase(string e) => e switch { "R" => "res", "P" => "pen", _ => "lib" };
+}
