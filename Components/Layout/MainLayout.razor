@@ -3,9 +3,27 @@
 <AuthorizeView>
     <Authorized>
         <div class="page">
-            ...aquí va todo lo que ya tenías dentro del div "page"...
+            <div class="sidebar">
+                <NavMenu />
+            </div>
+
+            <main>
+                <div class="top-row px-4">
+                    <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+                </div>
+
+                <article class="content px-4">
+                    @Body
+                </article>
+            </main>
         </div>
     </Authorized>
     <NotAuthorized><RedirectToLogin /></NotAuthorized>
     <Authorizing><p style="padding:2rem">Cargando…</p></Authorizing>
 </AuthorizeView>
+
+<div id="blazor-error-ui" data-nosnippet>
+    An unhandled error has occurred.
+    <a href="." class="reload">Reload</a>
+    <span class="dismiss">🗙</span>
+</div>

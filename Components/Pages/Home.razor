@@ -1,19 +1,7 @@
 ﻿@page "/"
-@inject AuthService Auth
+@layout BlazorApp1.Components.Layout.EmptyLayout
 @inject NavigationManager Nav
 
-<PageTitle>Inicio</PageTitle>
-
-<AuthorizeView>
-    <h1>Hola, @context.User.Identity?.Name</h1>
-</AuthorizeView>
-<p>Aquí irá el dashboard.</p>
-<button class="btn btn-primary" @onclick="LogoutAsync">Cerrar sesión</button>
-
 @code {
-    private async Task LogoutAsync()
-    {
-        await Auth.LogoutAsync();
-        Nav.NavigateTo("/login");
-    }
+    protected override void OnInitialized() => Nav.NavigateTo("/dashboard", replace: true);
 }
