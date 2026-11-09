@@ -1,0 +1,95 @@
+﻿@page "/registro"
+@layout BlazorApp1.Components.Layout.AuthLayout
+@inject AccountService Account
+@inject NavigationManager Nav
+
+<PageTitle>Crear cuenta</PageTitle>
+
+<EditForm Model="model" OnValidSubmit="SubmitAsync" class="form">
+    <DataAnnotationsValidator />
+    <div>
+        <h2>Crear cuenta</h2>
+        <p class="sub">Regístrate para reservar canchas en minutos.</p>
+    </div>
+
+    <div class="dos">
+        <div class="group">
+            <label for="nombres">Nombres</label>
+            <InputText id="nombres" @bind-Value="model.Nombres" class="field" autocomplete="given-name" />
+            <ValidationMessage For="() => model.Nombres" class="err" />
+        </div>
+        <div class="group">
+            <label for="apellidos">Apellidos</label>
+            <InputText id="apellidos" @bind-Value="model.Apellidos" class="field" autocomplete="family-name" />
+            <ValidationMessage For="() => model.Apellidos" class="err" />
+        </div>
+    </div>
+
+    <div class="dos">
+        <div class="group">
+            <label for="dni">DNI</label>
+            <InputText id="dni" @bind-Value="model.Dni" class="field" inputmode="numeric" maxlength="8" />
+            <ValidationMessage For="() => model.Dni" class="err" />
+        </div>
+        <div class="group">
+            <label for="telefono">Teléfono (opcional)</label>
+            <InputText id="telefono" @bind-Value="model.Telefono" class="field" inputmode="tel" autocomplete="tel" />
+        </div>
+    </div>
+
+    <div class="group">
+        <label for="email">Correo electrónico</label>
+        <InputText id="email" @bind-Value="model.Email" class="field" placeholder="tucorreo@ejemplo.com" autocomplete="email" />
+        <ValidationMessage For="() => model.Email" class="err" />
+    </div>
+
+    <div class="group">
+        <label for="password">Contraseña</label>
+        <InputText id="password" type="password" @bind-Value="model.Password" class="field" autocomplete="new-password" />
+        <ValidationMessage For="() => model.Password" class="err" />
+    </div>
+
+    <div class="group">
+        <label for="confirm">Repetir contraseña</label>
+        <InputText id="confirm" type="password" @bind-Value="model.ConfirmPassword" class="field" autocomplete="new-password" />
+        <ValidationMessage For="() => model.ConfirmPassword" class="err" />
+    </div>
+
+    @if (error is not null) { <div class="aviso" role="alert">@error</div> }
+    @if (exito is not null) { <div class="exito" role="status">@exito</div> }
+
+    <button type="submit" class="btn-primario" disabled="@loading">
+        @(loading ? "Creando cuenta…" : "Crear cuenta")
+    </button>
+
+    <div class="foot">¿Ya tienes cuenta? <a href="login">Inicia sesión</a></div>
+</EditForm>
+
+@code {
+    private readonly RegistroModel model = new();
+    private bool loading;
+    private string? error;
+    private string? exito;
+
+    private async Task SubmitAsync()
+    {
+        loading = true;
+        error = null;
+        exito = null;
+        try
+        {
+            var r = await Account.RegisterAsync(model);
+            if (!r.Ok) error = r.Mensaje;
+            else if (r.Ingresado) Nav.NavigateTo("/dashboard");
+            else exito = r.Mensaje;
+        }
+        catch (Exception ex)
+        {
+            error = "Error inesperado: " + ex.Message;
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+}

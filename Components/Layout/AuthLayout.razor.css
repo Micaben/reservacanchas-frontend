@@ -1,0 +1,168 @@
+/* CSS for AuthLayout component */
+.auth-page {
+    display: flex;
+    min-height: 100vh;
+    font-family: Sora, Arial, sans-serif;
+    color: #0F3D2E;
+    background: #F4F6F1;
+    flex-wrap: wrap;
+}
+
+.hero {
+    flex: 1 1 420px;
+    background: #0F3D2E;
+    color: #fff;
+    padding: 56px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 32px;
+}
+
+.brand {
+    font-weight: 700;
+    font-size: 24px;
+}
+
+    .brand span {
+        color: #C8F169;
+    }
+
+.hero svg {
+    width: 100%;
+    max-width: 460px;
+    align-self: center;
+}
+
+.hero h1 {
+    margin: 0 0 12px;
+    font-size: 40px;
+    line-height: 1.15;
+}
+
+.hero p {
+    margin: 0;
+    color: #D6E4DA;
+}
+
+.form-wrap {
+    flex: 1 1 420px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 32px;
+}
+
+.form-inner {
+    width: 100%;
+    max-width: 440px;
+}
+
+.form-wrap ::deep .form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.form-wrap ::deep h2 {
+    margin: 0 0 6px;
+    font-size: 28px;
+}
+
+.form-wrap ::deep .sub {
+    margin: 0;
+    color: #4B5A52;
+    font-size: 15px;
+}
+
+.form-wrap ::deep .dos {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.form-wrap ::deep .group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+}
+
+    .form-wrap ::deep .group label {
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+.form-wrap ::deep .field {
+    width: 100%;
+    height: 48px;
+    box-sizing: border-box;
+    padding: 0 14px;
+    border: 1.5px solid #8A9D91;
+    border-radius: 10px;
+    font: inherit;
+    background: #fff;
+    color: #0F3D2E;
+}
+
+    .form-wrap ::deep .field:focus {
+        outline: 3px solid #C8F169;
+        border-color: #0F3D2E;
+    }
+
+.form-wrap ::deep .btn-primario {
+    display: block;
+    width: 100%;
+    height: 50px;
+    box-sizing: border-box;
+    border: 0;
+    border-radius: 10px;
+    background: #C8F169;
+    color: #0F3D2E;
+    font: 700 16px Sora, Arial, sans-serif;
+    cursor: pointer;
+}
+
+    .form-wrap ::deep .btn-primario:disabled {
+        opacity: .6;
+        cursor: default;
+    }
+
+.form-wrap ::deep .aviso {
+    background: #fff;
+    border: 2px solid #7A1F1F;
+    color: #7A1F1F;
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 14px;
+}
+
+.form-wrap ::deep .exito {
+    background: #E3EFD0;
+    border: 2px solid #0F3D2E;
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 14px;
+}
+
+.form-wrap ::deep .err {
+    color: #7A1F1F;
+    font-size: 13px;
+}
+
+.form-wrap ::deep .foot {
+    text-align: center;
+    font-size: 14px;
+    color: #4B5A52;
+}
+
+.form-wrap ::deep a {
+    color: #0F3D2E;
+    font-weight: 600;
+}
+
+@media (max-width: 560px) {
+    .form-wrap ::deep .dos {
+        grid-template-columns: 1fr;
+    }
+}

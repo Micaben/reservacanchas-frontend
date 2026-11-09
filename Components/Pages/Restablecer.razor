@@ -1,0 +1,79 @@
+﻿@page "/restablecer"
+@layout BlazorApp1.Components.Layout.AuthLayout
+@inject AccountService Account
+
+<PageTitle>Nueva contraseña</PageTitle>
+
+@if (string.IsNullOrWhiteSpace(Key))
+{
+    <div class="form">
+        <h2>Enlace no válido</h2>
+        <p class="sub">Este enlace está incompleto o venció.</p>
+        <div class="foot"><a href="recuperar">Solicitar un enlace nuevo</a></div>
+    </div>
+}
+else if (listo)
+{
+    <div class="form">
+        <h2>Contraseña actualizada</h2>
+        <div class="exito" role="status">Ya puedes iniciar sesión con tu nueva contraseña.</div>
+        <div class="foot"><a href="login">Ir a iniciar sesión</a></div>
+    </div>
+}
+else
+{
+    <EditForm Model="model" OnValidSubmit="SubmitAsync" class="form">
+        <DataAnnotationsValidator />
+        <div>
+            <h2>Crea tu nueva contraseña</h2>
+            <p class="sub">Elige una contraseña de al menos 8 caracteres.</p>
+        </div>
+
+        <div class="group">
+            <label for="password">Nueva contraseña</label>
+            <InputText id="password" type="password" @bind-Value="model.Password" class="field" autocomplete="new-password" />
+            <ValidationMessage For="() => model.Password" class="err" />
+        </div>
+
+        <div class="group">
+            <label for="confirm">Repetir contraseña</label>
+            <InputText id="confirm" type="password" @bind-Value="model.ConfirmPassword" class="field" autocomplete="new-password" />
+            <ValidationMessage For="() => model.ConfirmPassword" class="err" />
+        </div>
+
+        @if (error is not null) { <div class="aviso" role="alert">@error</div> }
+
+        <button type="submit" class="btn-primario" disabled="@loading">
+            @(loading ? "Guardando…" : "Guardar contraseña")
+        </button>
+    </EditForm>
+}
+
+@code {
+    [Parameter, SupplyParameterFromQuery(Name = "key")]
+    public string? Key { get; set; }
+
+    private readonly RestablecerModel model = new();
+    private bool loading, listo;
+    private string? error;
+
+    private async Task SubmitAsync()
+    {
+        loading = true;
+        error = null;
+        try
+        {
+            var (ok, msg) = await Account.RestablecerAsync(Key!, model.Password);
+            if (ok) listo = true;
+            else error = msg;
+        }
+        catch (Exception ex)
+        {
+            error = "Error inesperado: " + ex.Message;
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+}

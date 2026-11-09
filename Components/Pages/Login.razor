@@ -43,21 +43,21 @@
                 <ValidationMessage For="() => model.Password" class="err" />
             </div>
 
-            <div class="row">
+            <div class="opciones">
                 <label class="check"><InputCheckbox @bind-Value="model.RememberMe" /> Recordarme</label>
-                <a href="#">¿Olvidaste tu contraseña?</a>
+                <a href="recuperar">¿Olvidaste tu contraseña?</a>
             </div>
 
             @if (error is not null)
             {
-                <div class="alert" role="alert">@error</div>
+                <div class="aviso" role="alert">@error</div>
             }
 
-            <button type="submit" class="btn" disabled="@loading">
+            <button type="submit" class="btn-entrar" disabled="@loading">
                 @(loading ? "Entrando…" : "Entrar")
             </button>
 
-            <div class="foot">¿No tienes cuenta? <a href="#">Regístrate</a></div>
+            <div class="foot">¿No tienes cuenta? <a href="registro">Regístrate</a></div>
         </EditForm>
     </section>
 </div>

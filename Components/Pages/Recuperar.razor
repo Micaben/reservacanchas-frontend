@@ -1,0 +1,58 @@
+﻿@page "/recuperar"
+@layout BlazorApp1.Components.Layout.AuthLayout
+@inject AccountService Account
+
+<PageTitle>Recuperar contraseña</PageTitle>
+
+<EditForm Model="model" OnValidSubmit="SubmitAsync" class="form">
+    <DataAnnotationsValidator />
+    <div>
+        <h2>¿Olvidaste tu contraseña?</h2>
+        <p class="sub">Escribe tu correo y te enviaremos un enlace para crear una nueva.</p>
+    </div>
+
+    <div class="group">
+        <label for="email">Correo electrónico</label>
+        <InputText id="email" @bind-Value="model.Email" class="field" placeholder="tucorreo@ejemplo.com" autocomplete="email" />
+        <ValidationMessage For="() => model.Email" class="err" />
+    </div>
+
+    @if (enviado)
+    {
+        <div class="exito" role="status">Si el correo está registrado, te enviamos un enlace para restablecer tu contraseña.</div>
+    }
+    @if (error is not null) { <div class="aviso" role="alert">@error</div> }
+
+    <button type="submit" class="btn-primario" disabled="@loading">
+        @(loading ? "Enviando…" : "Enviar enlace")
+    </button>
+
+    <div class="foot"><a href="login">Volver a iniciar sesión</a></div>
+</EditForm>
+
+@code {
+    private readonly RecuperarModel model = new();
+    private bool loading, enviado;
+    private string? error;
+
+    private async Task SubmitAsync()
+    {
+        loading = true;
+        error = null;
+        enviado = false;
+        try
+        {
+            var (ok, msg) = await Account.SolicitarRecuperacionAsync(model.Email);
+            if (ok) enviado = true;
+            else error = msg;
+        }
+        catch (Exception ex)
+        {
+            error = "Error inesperado: " + ex.Message;
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+}
