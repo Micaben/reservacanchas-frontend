@@ -1,0 +1,231 @@
+﻿@page "/reservar"
+@layout BlazorApp1.Components.Layout.PanelLayout
+@using System.Globalization
+@using System.Net
+@inject ReservaService Api
+@inject NavigationManager Nav
+
+<PageTitle>Nueva reserva</PageTitle>
+
+<h1>Nueva reserva</h1>
+<p class="sub">Elige fecha, deporte, cancha y horario.</p>
+
+@if (cargando)
+{
+    <p class="sub">Cargando…</p>
+}
+else
+{
+    @if (error is not null)
+    {
+        <div class="aviso" role="alert">@error</div>
+    }
+    @if (miCliente is null)
+    {
+        <div class="aviso" role="alert">Tu usuario no tiene ficha de cliente, así que no puede reservar. Regístrate con una cuenta de cliente.</div>
+    }
+
+    <div class="filtros">
+        <div class="grupo">
+            <label for="fecha">Fecha</label>
+            <input id="fecha" type="date" class="campo" value="@FechaIso" min="@MinIso" max="@MaxIso" @onchange="CambiarFecha" />
+        </div>
+        <div class="chips" role="group" aria-label="Deporte">
+            <button class="chip @(DeporteId is null ? "activo" : "")" @onclick="() => SetDeporte(null)">Todos</button>
+            @foreach (var d in deportes)
+            {
+                <button class="chip @(DeporteId == d.Id ? "activo" : "")" @onclick="() => SetDeporte(d.Id)">@d.Nombre</button>
+            }
+        </div>
+    </div>
+
+    <div class="cols">
+        <div class="lista">
+            @foreach (var c in CanchasFiltradas)
+            {
+                <article class="cancha">
+                    <div class="cab">
+                        <div>
+                            <h2>@c.Nombre</h2>
+                            <p class="det">@DeportesTexto(c) · Capacidad @c.Capacidad</p>
+                        </div>
+                        <div class="precio">S/ @c.PrecioHora.ToString("0.00", es) / hora</div>
+                    </div>
+                    <div class="slots">
+                        @foreach (var h in Disponibilidad.Horas)
+                        {
+                            var e = Disponibilidad.Estado(c, h, Fecha, reservasDia);
+                            var elegido = canchaSel?.Id == c.Id && horaSel == h;
+                            if (e == "L")
+                            {
+                                <button class="slot @(elegido ? "sel" : "")" aria-pressed="@(elegido ? "true" : "false")"
+                                        @onclick="() => Elegir(c, h)">
+                                    @h
+                                </button>
+                            }
+                            else
+                            {
+                                <button class="slot off" disabled>@h · @Disponibilidad.Texto(e)</button>
+                            }
+                        }
+                    </div>
+                </article>
+            }
+            @if (!CanchasFiltradas.Any())
+            {
+                <p class="sub">No hay canchas para ese deporte.</p>
+            }
+        </div>
+
+        <aside class="resumen">
+            <h2>Resumen</h2>
+            @if (canchaSel is null || horaSel is null)
+            {
+                <p class="sub">Elige un horario libre para continuar.</p>
+            }
+            else
+            {
+                <dl>
+                    <dt>Cancha</dt>
+                    <dd>@canchaSel.Nombre</dd>
+                    <dt>Fecha</dt>
+                    <dd>@FechaTexto</dd>
+                    <dt>Horario</dt>
+                    <dd>@horaSel – @HoraFin(horaSel)</dd>
+                    <dt>Total</dt>
+                    <dd><strong>S/ @canchaSel.PrecioHora.ToString("0.00", es)</strong></dd>
+                </dl>
+                <button class="btn-confirmar" disabled="@(guardando || miCliente is null)" @onclick="ConfirmarAsync">
+                    @(guardando ? "Reservando…" : "Confirmar reserva")
+                </button>
+                <p class="nota">Quedará en estado pendiente hasta confirmar el pago.</p>
+            }
+        </aside>
+    </div>
+}
+
+@code {
+    [Parameter, SupplyParameterFromQuery(Name = "fecha")] public string? FechaQ { get; set; }
+    [Parameter, SupplyParameterFromQuery(Name = "cancha")] public long? CanchaQ { get; set; }
+    [Parameter, SupplyParameterFromQuery(Name = "hora")] public string? HoraQ { get; set; }
+
+    private static readonly CultureInfo es = new("es-PE");
+    private const int MaxDias = 60;
+    private readonly DateOnly Hoy = DateOnly.FromDateTime(DateTime.Today);
+    private DateOnly Fecha;
+
+    private List<CanchaDto> canchas = new();
+    private List<DeporteDto> deportes = new();
+    private List<ReservaDto> reservasDia = new();
+    private ClienteDto? miCliente;
+    private long? DeporteId;
+    private CanchaDto? canchaSel;
+    private string? horaSel;
+    private bool cargando = true, guardando;
+    private string? error;
+
+    private string FechaIso => Fecha.ToString("yyyy-MM-dd");
+    private string MinIso => Hoy.ToString("yyyy-MM-dd");
+    private string MaxIso => Hoy.AddDays(MaxDias).ToString("yyyy-MM-dd");
+    private string FechaTexto
+    {
+        get
+        {
+            var t = Fecha.ToString("dddd d 'de' MMMM", es);
+            return char.ToUpper(t[0]) + t[1..];
+        }
+    }
+
+    private IEnumerable<CanchaDto> CanchasFiltradas => canchas.Where(c =>
+        c.Estado != "INACTIVA" && (DeporteId is null || (c.Deportes?.Any(d => d.Id == DeporteId) ?? false)));
+
+    private static string DeportesTexto(CanchaDto c) =>
+        c.Deportes is { Count: > 0 } ? string.Join(", ", c.Deportes.Select(d => d.Nombre)) : "Sin deporte";
+
+    private static string HoraFin(string inicio) =>
+        TimeOnly.ParseExact(inicio, "HH:mm", CultureInfo.InvariantCulture).AddHours(1).ToString("HH:mm");
+
+    protected override async Task OnInitializedAsync()
+    {
+        Fecha = DateOnly.TryParse(FechaQ, CultureInfo.InvariantCulture, out var f) && f >= Hoy && f <= Hoy.AddDays(MaxDias)
+            ? f : Hoy;
+        try
+        {
+            canchas = await Api.GetCanchasAsync();
+            deportes = await Api.GetDeportesAsync();
+            miCliente = await Api.GetMiClienteAsync();
+        }
+        catch (Exception ex) { error = Mensaje(ex); }
+
+        await CargarReservasAsync();
+
+        // Preselección que viene desde el dashboard
+        var pre = canchas.FirstOrDefault(c => c.Id == CanchaQ);
+        if (pre is not null && HoraQ is not null && Disponibilidad.Estado(pre, HoraQ, Fecha, reservasDia) == "L")
+        {
+            canchaSel = pre;
+            horaSel = HoraQ;
+        }
+        cargando = false;
+    }
+
+    private async Task CargarReservasAsync()
+    {
+        try
+        {
+            var iso = FechaIso;
+            reservasDia = (await Api.GetReservasAsync()).Where(r => r.Fecha == iso).ToList();
+        }
+        catch (Exception ex) { error = Mensaje(ex); }
+    }
+
+    private static string Mensaje(Exception ex) => ex switch
+    {
+        HttpRequestException { StatusCode: HttpStatusCode.Unauthorized } => "Tu sesión venció. Inicia sesión de nuevo.",
+        HttpRequestException => "No se pudo conectar con el servidor. ¿Está encendido el backend?",
+        _ => "Error inesperado: " + ex.Message
+    };
+
+    private void SetDeporte(long? id) => DeporteId = id;
+
+    private void Elegir(CanchaDto c, string hora)
+    {
+        canchaSel = c;
+        horaSel = hora;
+    }
+
+    private async Task CambiarFecha(ChangeEventArgs e)
+    {
+        if (DateOnly.TryParse(e.Value?.ToString(), CultureInfo.InvariantCulture, out var f) && f >= Hoy && f <= Hoy.AddDays(MaxDias))
+        {
+            Fecha = f;
+            canchaSel = null;
+            horaSel = null;
+            await CargarReservasAsync();
+        }
+    }
+
+    private async Task ConfirmarAsync()
+    {
+        if (canchaSel is null || horaSel is null || miCliente is null) return;
+        guardando = true;
+        error = null;
+        try
+        {
+            var (ok, msg) = await Api.CrearReservaAsync(canchaSel, miCliente.Id, Fecha, horaSel);
+            if (ok)
+            {
+                Nav.NavigateTo("/dashboard");
+                return;
+            }
+            error = msg;
+            canchaSel = null;
+            horaSel = null;
+            await CargarReservasAsync();
+        }
+        finally
+        {
+            guardando = false;
+        }
+    }
+}

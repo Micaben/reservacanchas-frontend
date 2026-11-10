@@ -18,7 +18,7 @@ h1 {
     font-size: 15px;
 }
 
-.btn {
+.btn-nueva {
     height: 48px;
     padding: 0 24px;
     border: 0;
@@ -27,6 +27,16 @@ h1 {
     color: #0F3D2E;
     font: 700 15px Sora, Arial, sans-serif;
     cursor: pointer;
+}
+
+.aviso {
+    background: #fff;
+    border: 2px solid #7A1F1F;
+    color: #7A1F1F;
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 14px;
+    margin-bottom: 16px;
 }
 
 .kpis {
@@ -67,6 +77,88 @@ h1 {
         font-size: 18px;
     }
 
+.card-cab {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+}
+
+    .card-cab h2 {
+        margin: 0;
+    }
+
+.nav-dia {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.flecha {
+    width: 40px;
+    height: 40px;
+    border: 1.5px solid #0F3D2E;
+    border-radius: 8px;
+    background: #fff;
+    color: #0F3D2E;
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.fecha-actual {
+    min-width: 190px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 15px;
+}
+
+.etiqueta-hoy {
+    background: #C8F169;
+    color: #0F3D2E;
+    border-radius: 12px;
+    padding: 2px 10px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.selector-fecha {
+    height: 40px;
+    box-sizing: border-box;
+    border: 1.5px solid #8A9D91;
+    border-radius: 8px;
+    padding: 0 10px;
+    font: inherit;
+    color: #0F3D2E;
+    background: #fff;
+}
+
+.ir-hoy {
+    height: 40px;
+    padding: 0 14px;
+    border: 0;
+    background: transparent;
+    color: #0F3D2E;
+    font: 600 14px Sora, Arial, sans-serif;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+    .flecha:disabled, .ir-hoy:disabled {
+        opacity: .4;
+        cursor: default;
+    }
+
+    .flecha:focus-visible, .ir-hoy:focus-visible, .selector-fecha:focus-visible, .celda:focus-visible, .btn-nueva:focus-visible {
+        outline: 3px solid #0F3D2E;
+        outline-offset: 2px;
+    }
+
 .scroll {
     overflow-x: auto;
     display: flex;
@@ -98,14 +190,19 @@ h1 {
     justify-content: center;
     height: 44px;
     border-radius: 8px;
-    font-size: 13px;
-    font-weight: 600;
+    border: 0;
+    font: 600 13px Sora, Arial, sans-serif;
 }
 
 .lib {
     background: #E3EFD0;
     color: #0F3D2E;
+    cursor: pointer;
 }
+
+    .lib:hover {
+        background: #C8F169;
+    }
 
 .res {
     background: #0F3D2E;
@@ -117,3 +214,40 @@ h1 {
     color: #0F3D2E;
     border: 2px dashed #0F3D2E;
 }
+
+.nd {
+    background: #E4E7E3;
+    color: #4B5A52;
+}
+
+.item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 12px 0;
+    border-bottom: 1px solid #D6E0D8;
+}
+
+    .item:last-child {
+        border-bottom: 0;
+    }
+
+.estado {
+    font-size: 13px;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 8px;
+}
+
+    .estado.conf {
+        background: #E3EFD0;
+        color: #0F3D2E;
+    }
+
+    .estado.pend {
+        background: #fff;
+        color: #0F3D2E;
+        border: 2px dashed #0F3D2E;
+    }

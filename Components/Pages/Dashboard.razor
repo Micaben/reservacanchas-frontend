@@ -1,63 +1,206 @@
 ﻿@page "/dashboard"
 @layout BlazorApp1.Components.Layout.PanelLayout
+@using System.Globalization
+@using System.Net
+@inject ReservaService Api
+@inject NavigationManager Nav
 
 <PageTitle>Dashboard</PageTitle>
 
 <div class="top">
     <div>
-        <AuthorizeView>
-    <h1>Hola, @context.User.Identity?.Name</h1>
-</AuthorizeView>
-        <p class="sub">Disponibilidad de hoy</p>
+        <AuthorizeView><h1>Hola, @context.User.Identity?.Name</h1></AuthorizeView>
+        <p class="sub">Disponibilidad por cancha</p>
     </div>
-    <button class="btn">Nueva reserva</button>
+    <button class="btn-nueva" @onclick="NuevaReserva">Nueva reserva</button>
 </div>
 
+@if (error is not null)
+{
+    <div class="aviso" role="alert">@error</div>
+}
+
 <div class="kpis">
-    <div class="kpi"><span>Reservas de hoy</span><strong>—</strong></div>
-    <div class="kpi"><span>Próxima reserva</span><strong>—</strong></div>
-    <div class="kpi"><span>Canchas libres ahora</span><strong>—</strong></div>
-    <div class="kpi"><span>Saldo pendiente</span><strong>—</strong></div>
+    <div class="kpi"><span>Reservas del día</span><strong>@ReservasDelDia</strong></div>
+    <div class="kpi"><span>Horas libres</span><strong>@HorasLibres</strong></div>
+    <div class="kpi"><span>Mis próximas reservas</span><strong>@misReservas.Count</strong></div>
 </div>
 
 <section class="card">
-    <h2>Horarios por cancha</h2>
-    <div class="scroll">
-        <div class="fila head">
-            <div>Cancha</div>
-            @foreach (var h in horas) { <div>@h</div> }
-        </div>
-        @foreach (var c in canchas)
-        {
-            <div class="fila">
-                <div class="nombre">@c.Cancha</div>
-                @foreach (var e in c.Estados)
+    <div class="card-cab">
+        <h2>Horarios por cancha</h2>
+        <div class="nav-dia">
+            <button class="flecha" @onclick="DiaAnterior" disabled="@(Fecha <= Hoy)" aria-label="Día anterior">‹</button>
+            <div class="fecha-actual" aria-live="polite">
+                <strong>@FechaTexto</strong>
+                @if (Fecha == Hoy)
                 {
-                    <div class="celda @Clase(e)">@Texto(e)</div>
+                    <span class="etiqueta-hoy">Hoy</span>
                 }
             </div>
-        }
+            <button class="flecha" @onclick="DiaSiguiente" disabled="@(Fecha >= Hoy.AddDays(MaxDias))" aria-label="Día siguiente">›</button>
+            <input class="selector-fecha" type="date" value="@FechaIso" min="@MinIso" max="@MaxIso"
+                   @onchange="CambiarFecha" aria-label="Elegir fecha" />
+            <button class="ir-hoy" @onclick="IrAHoy" disabled="@(Fecha == Hoy)">Ir a hoy</button>
+        </div>
     </div>
+
+    @if (cargando)
+    {
+        <p class="sub">Cargando…</p>
+    }
+    else if (canchas.Count == 0)
+    {
+        <p class="sub">Aún no hay canchas registradas.</p>
+    }
+    else
+    {
+        <div class="scroll">
+            <div class="fila head">
+                <div>Cancha</div>
+                @foreach (var h in Disponibilidad.Horas)
+                {
+                    <div>@h</div>
+                }
+            </div>
+            @foreach (var c in canchas)
+            {
+                <div class="fila">
+                    <div class="nombre">@c.Nombre</div>
+                    @foreach (var h in Disponibilidad.Horas)
+                    {
+                        var e = Estado(c, h);
+                        if (e == "L")
+                        {
+                            <button class="celda lib" @onclick="() => Reservar(c, h)">Libre</button>
+                        }
+                        else
+                        {
+                            <div class="celda @Disponibilidad.Clase(e)">@Disponibilidad.Texto(e)</div>
+                        }
+                    }
+                </div>
+            }
+        </div>
+    }
 </section>
 
 <section class="card">
     <h2>Mis próximas reservas</h2>
-    <p class="sub">Aún no hay reservas. Se mostrarán aquí cuando conectemos la base de datos.</p>
+    @if (miCliente is null)
+    {
+        <p class="sub">Tu usuario no tiene ficha de cliente.</p>
+    }
+    else if (misReservas.Count == 0)
+    {
+        <p class="sub">Aún no tienes reservas próximas.</p>
+    }
+    else
+    {
+        foreach (var r in misReservas)
+        {
+            <div class="item">
+                <div>
+                    <strong>@(r.Cancha?.Nombre ?? "Cancha")</strong>
+                    <div class="sub">@FechaCorta(r.Fecha) · @r.HoraInicio – @r.HoraFin</div>
+                </div>
+                <span class="estado @(r.EstadoReserva == "PENDIENTE" ? "pend" : "conf")">
+                    @(r.EstadoReserva == "PENDIENTE" ? "Pendiente" : "Confirmada")
+                </span>
+                <strong>S/ @r.PrecioTotal.ToString("0.00", es)</strong>
+            </div>
+        }
+    }
 </section>
 
 @code {
-    private readonly string[] horas = { "16:00", "17:00", "18:00", "19:00", "20:00", "21:00" };
+    private static readonly CultureInfo es = new("es-PE");
+    private const int MaxDias = 60;
+    private readonly DateOnly Hoy = DateOnly.FromDateTime(DateTime.Today);
+    private DateOnly Fecha;
 
-    // L = libre, R = reservada, P = pendiente (datos de ejemplo)
-    private readonly (string Cancha, string[] Estados)[] canchas =
+    private List<CanchaDto> canchas = new();
+    private List<ReservaDto> reservasDia = new();
+    private List<ReservaDto> misReservas = new();
+    private ClienteDto? miCliente;
+    private bool cargando = true;
+    private string? error;
+
+    private string FechaIso => Fecha.ToString("yyyy-MM-dd");
+    private string MinIso => Hoy.ToString("yyyy-MM-dd");
+    private string MaxIso => Hoy.AddDays(MaxDias).ToString("yyyy-MM-dd");
+    private string FechaTexto
     {
-        ("Fútbol 5 · Cancha 1", new[] { "L", "R", "R", "P", "L", "L" }),
-        ("Fútbol 7 · Cancha 2", new[] { "R", "R", "L", "L", "P", "R" }),
-        ("Básquet · Cancha 3",  new[] { "L", "L", "R", "R", "L", "L" }),
-        ("Vóley · Cancha 4",    new[] { "L", "P", "L", "R", "R", "L" }),
-        ("Tenis · Cancha 5",    new[] { "R", "L", "L", "L", "R", "P" }),
+        get
+        {
+            var t = Fecha.ToString("dddd d 'de' MMMM", es);
+            return char.ToUpper(t[0]) + t[1..];
+        }
+    }
+
+    private int ReservasDelDia => reservasDia.Count(r => r.EstadoReserva != "CANCELADA");
+    private int HorasLibres => canchas.Sum(c => Disponibilidad.Horas.Count(h => Estado(c, h) == "L"));
+
+    private string Estado(CanchaDto c, string h) => Disponibilidad.Estado(c, h, Fecha, reservasDia);
+
+    private static string FechaCorta(string iso) =>
+        DateOnly.TryParse(iso, CultureInfo.InvariantCulture, out var f) ? f.ToString("ddd d MMM", es) : iso;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Fecha = Hoy;
+        try
+        {
+            canchas = await Api.GetCanchasAsync();
+            miCliente = await Api.GetMiClienteAsync();
+        }
+        catch (Exception ex) { error = Mensaje(ex); }
+
+        await CargarReservasAsync();
+        cargando = false;
+    }
+
+    private async Task CargarReservasAsync()
+    {
+        try
+        {
+            var todas = await Api.GetReservasAsync();
+            var iso = FechaIso;
+            reservasDia = todas.Where(r => r.Fecha == iso).ToList();
+            misReservas = miCliente is null
+                ? new()
+                : todas.Where(r => r.Cliente?.Id == miCliente.Id
+                                   && r.EstadoReserva != "CANCELADA"
+                                   && DateOnly.TryParse(r.Fecha, CultureInfo.InvariantCulture, out var f) && f >= Hoy)
+                       .OrderBy(r => r.Fecha).ThenBy(r => r.HoraInicio).Take(5).ToList();
+        }
+        catch (Exception ex) { error = Mensaje(ex); }
+    }
+
+    private static string Mensaje(Exception ex) => ex switch
+    {
+        HttpRequestException { StatusCode: HttpStatusCode.Unauthorized } => "Tu sesión venció. Inicia sesión de nuevo.",
+        HttpRequestException => "No se pudo conectar con el servidor. ¿Está encendido el backend?",
+        _ => "Error inesperado: " + ex.Message
     };
 
-    private static string Texto(string e) => e switch { "R" => "Reservada", "P" => "Pendiente", _ => "Libre" };
-    private static string Clase(string e) => e switch { "R" => "res", "P" => "pen", _ => "lib" };
+    private async Task Ir(DateOnly nueva)
+    {
+        Fecha = nueva;
+        await CargarReservasAsync();
+    }
+
+    private Task DiaAnterior() => Fecha > Hoy ? Ir(Fecha.AddDays(-1)) : Task.CompletedTask;
+    private Task DiaSiguiente() => Fecha < Hoy.AddDays(MaxDias) ? Ir(Fecha.AddDays(1)) : Task.CompletedTask;
+    private Task IrAHoy() => Ir(Hoy);
+
+    private Task CambiarFecha(ChangeEventArgs e) =>
+        DateOnly.TryParse(e.Value?.ToString(), CultureInfo.InvariantCulture, out var f) && f >= Hoy && f <= Hoy.AddDays(MaxDias)
+            ? Ir(f)
+            : Task.CompletedTask;
+
+    private void NuevaReserva() => Nav.NavigateTo($"/reservar?fecha={FechaIso}");
+
+    private void Reservar(CanchaDto c, string hora) =>
+        Nav.NavigateTo($"/reservar?fecha={FechaIso}&cancha={c.Id}&hora={Uri.EscapeDataString(hora)}");
 }
